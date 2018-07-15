@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript"
+            src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+    </script>
+    <style>
+        #notice {
+            display: none;
+            position: absolute;
+            margin-left: 50%;
+            padding: 5%;
+            background-color: silver;
+
+        }
+    </style>
+</head>
+<body>
+    <div id="notice">
+        One new article
+    </div>
+    <div id="articles">
+        {% for article in object_list %}
+            {{ article.title }}<br>
+        {% endfor %}
+    </div>
+</body>
+<script>
+    var noticeSocket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/articles/index/');
+    noticeSocket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        var message = data['message'];
+        $('#notice').show('slow')
+        setTimeout(function() { $("#notice").hide('slow'); }, 5000);
+        $.getJSON(
+            'http://'+ window.location.host +
+            '/articles/api/post/' + message + '/',
+            function(data) {
+                var new_article = data.title + '<br>';
+                $("#articles").prepend(new_article);
+        });
+    };
+    noticeSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+</script>
+</html>
